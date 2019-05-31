@@ -1,0 +1,11 @@
+name: Castles
+author: efekt
+version: ${project.version}
+main: it.efekt.mc.castles.CastlesPlugin
+commands:
+  castles:
+    description: base Castles command
+permissions:
+  castles.main:
+    description: base command permission
+    default: op
