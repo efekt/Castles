@@ -1,6 +1,7 @@
 package it.efekt.mc.castles;
 
 import it.efekt.mc.castles.runnables.CastlesTimer;
+import it.efekt.mc.castles.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -11,8 +12,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Castles implements Listener {
@@ -26,26 +27,58 @@ public class Castles implements Listener {
     }
 
     public void start(){
+        randomizeTeams(1);
         progress();
     }
+
+    private void randomizeTeams(int teamNumber){
+        List<Player> players = new ArrayList<>();
+        players.addAll(Bukkit.getOnlinePlayers());
+
+        Collections.shuffle(players);
+        List<List<Player>> chunked = Utils.partition(players, players.size()/teamNumber);
+
+        if (chunked.size() > teamNumber){
+            List<Player> leftover = chunked.get(teamNumber);
+            chunked.get(0).addAll(leftover);
+            chunked.remove(leftover);
+        }
+
+        for (List<Player> item: chunked){
+            CastleTeam team = new CastleTeam();
+            team.setPlayers(item);
+            this.teams.add(team);
+
+            System.out.println("----------");
+            for (Player player : item){
+                System.out.println(player.getName());
+            }
+        }
+
+    }
+
 
 
     public void progress(){
         switch (this.gameState){
-
             case LOBBY:
+                stopCountdown();
                 setGameState(GameState.PREPARATION);
                 startCountdown();
                 break;
             case PREPARATION:
+                stopCountdown();
                 setGameState(GameState.PEACE);
                 startCountdown();
                 break;
             case PEACE:
+                stopCountdown();
                 setGameState(GameState.WAR);
                 startCountdown();
                 break;
             case WAR:
+                stopCountdown();
+                Bukkit.broadcastMessage("ROUND IS OVER!");
                 setGameState(GameState.FINISHED);
                 break;
             case FINISHED:
@@ -55,6 +88,10 @@ public class Castles implements Listener {
             default:
                 break;
         }
+    }
+
+    private void announceWinners(CastleTeam winnerTeam){
+        Bukkit.broadcastMessage("The winners: " + winnerTeam.getPlayersAsString());
     }
 
     public void startCountdown(){
@@ -73,6 +110,15 @@ public class Castles implements Listener {
 
     public GameState getGameState(){
         return this.gameState;
+    }
+
+    private CastleTeam getTeam(Player player){
+        for (CastleTeam team : this.teams){
+            if (team.hasPlayer(player)){
+                return team;
+            }
+        }
+        return null;
     }
 
     // Do not allow players to join while match is in progress
@@ -112,6 +158,7 @@ public class Castles implements Listener {
         if (clickedBlock.equals(Material.SPONGE) && itemInHand.equals(Material.SPONGE)){
             setGameState(GameState.FINISHED);
             progress();
+            announceWinners(getTeam(e.getPlayer()));
         }
     }
 }

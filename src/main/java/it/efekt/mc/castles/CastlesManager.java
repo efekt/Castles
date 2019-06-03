@@ -21,6 +21,10 @@ public class CastlesManager {
         this.instance.start();
     }
 
+    public void progress(){
+        this.instance.progress();
+    }
+
     public Castles getInstance(){
         return this.instance;
     }

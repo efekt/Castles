@@ -27,6 +27,15 @@ public class CastleTeam {
         return players;
     }
 
+    public String getPlayersAsString(){
+        String players = "";
+        for (Player player : this.players){
+            players = players.concat(player.getName() + " ");
+        }
+
+        return players;
+    }
+
     public void setPlayers(List<Player> players) {
         this.players = players;
     }
