@@ -1,8 +1,8 @@
 spawn:
   world: world
-  X: 0
-  Y: 60
-  Z: 0
-  Yaw: 90
-peaceLength:
-warLength:
+  x: -49
+  y: 68
+  z: 142
+  yaw: 90
+peaceLength: 60
+warLength: 60

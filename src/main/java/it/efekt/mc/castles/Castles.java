@@ -12,6 +12,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +22,12 @@ public class Castles implements Listener {
     private GameState gameState = GameState.LOBBY;
     private List<CastleTeam> teams = new ArrayList<>();
     private CastlesTimer mainTimer = new CastlesTimer(this);
+    private Config config;
 
     public Castles(CastlesPlugin plugin){
         this.castlesPlugin = plugin;
+        this.config = new Config(this.castlesPlugin);
+        setGameState(GameState.LOBBY);
     }
 
     public void start(){
@@ -121,11 +125,24 @@ public class Castles implements Listener {
         return null;
     }
 
+    public Config getConfig(){
+        return this.config;
+    }
+
     // Do not allow players to join while match is in progress
     @EventHandler
     public void onPlayerJoin(AsyncPlayerPreLoginEvent e){
         if (!getGameState().equals(GameState.LOBBY)){
             e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Game in progress...");
+            return;
+        }
+    }
+
+    @EventHandler
+    public void onPlayerLogin(PlayerJoinEvent e){
+        if (getGameState().equals(GameState.LOBBY)){
+            e.getPlayer().teleport(this.config.getSpawnLocation());
+            return;
         }
     }
 
@@ -154,11 +171,13 @@ public class Castles implements Listener {
         }
         Block block = e.getClickedBlock();
         Material itemInHand = e.getPlayer().getInventory().getItemInMainHand().getType();
-        Material clickedBlock = block.getBlockData().getMaterial();
-        if (clickedBlock.equals(Material.SPONGE) && itemInHand.equals(Material.SPONGE)){
-            setGameState(GameState.FINISHED);
-            progress();
-            announceWinners(getTeam(e.getPlayer()));
-        }
+        try {
+            Material clickedBlock = block.getBlockData().getMaterial();
+            if (clickedBlock.equals(Material.SPONGE) && itemInHand.equals(Material.SPONGE)) {
+                setGameState(GameState.FINISHED);
+                progress();
+                announceWinners(getTeam(e.getPlayer()));
+            }
+        } catch (NullPointerException exc){}
     }
 }

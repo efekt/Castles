@@ -11,13 +11,20 @@ public class CastleCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if (args.length == 1){
 
-            if (args[0].equalsIgnoreCase("start")){
-                CastlesPlugin.castlesManager.start();
-                return true;
-            }
-            // force next gamestate
-            if (args[0].equalsIgnoreCase("next")){
-                CastlesPlugin.castlesManager.progress();
+            switch (args[0]){
+                case "start":
+                    CastlesPlugin.castlesManager.start();
+                    return true;
+                case "next":
+                    CastlesPlugin.castlesManager.progress();
+                    return true;
+                case "reload":
+                    CastlesPlugin.plugin.reloadConfig();
+                    sender.sendMessage("Config reloaded.");
+                    return true;
+                default:
+                    return false;
+
             }
 
         }

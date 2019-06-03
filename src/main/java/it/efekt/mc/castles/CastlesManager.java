@@ -8,9 +8,10 @@ public class CastlesManager {
 
     public CastlesManager(CastlesPlugin castles){
         this.plugin = castles;
+        init();
     }
 
-    public void start(){
+    public void init(){
         // Unregister previously registered listener
         if (this.instance != null){
             HandlerList.unregisterAll(instance);
@@ -18,6 +19,10 @@ public class CastlesManager {
 
         this.instance = new Castles(this.plugin);
         this.plugin.getServer().getPluginManager().registerEvents(this.instance, this.plugin);
+
+    }
+
+    public void start(){
         this.instance.start();
     }
 

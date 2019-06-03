@@ -1,10 +1,10 @@
 package it.efekt.mc.castles;
 
 public enum GameState {
-    LOBBY(20),
-    PREPARATION(20),
-    PEACE(20),
-    WAR(20),
+    LOBBY(999),
+    PREPARATION(60),
+    PEACE(60),
+    WAR(60),
     FINISHED(0);
 
     private long time;
@@ -14,7 +14,13 @@ public enum GameState {
     }
 
     public long getLength(){
-        return this.time;
+        Config config = CastlesPlugin.castlesManager.getInstance().getConfig();
+        switch (this){
+            case PEACE: return config.getPeaceTime();
+            case WAR: return config.getWarTime();
+            default:
+                return this.time;
+        }
     }
 
 }
