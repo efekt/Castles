@@ -2,7 +2,12 @@ package it.efekt.mc.castles.runnables;
 
 import it.efekt.mc.castles.Castles;
 import it.efekt.mc.castles.GameState;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class CastlesTimer extends BukkitRunnable {
@@ -35,8 +40,9 @@ public class CastlesTimer extends BukkitRunnable {
             this.isActive = false;
             this.progress();
         }
-
-        Bukkit.broadcastMessage("Time Left: " + currentTime + " sec, Current state: " + castles.getGameState());
+        for (Player player : Bukkit.getOnlinePlayers()){
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.DARK_AQUA + castles.getGameState().toString() + ": " + ChatColor.GOLD + currentTime));
+        }
         --currentTime;
     }
 }

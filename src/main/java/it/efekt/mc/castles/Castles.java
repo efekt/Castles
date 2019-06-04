@@ -117,6 +117,10 @@ public class Castles implements Listener {
         }
     }
 
+    public List<CastleTeam> getTeams(){
+        return this.teams;
+    }
+
     private void announceWinners(CastleTeam winnerTeam){
         Bukkit.broadcastMessage("The winners: " + winnerTeam.getPlayersAsString());
     }
