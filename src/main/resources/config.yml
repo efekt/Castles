@@ -6,3 +6,4 @@ spawn:
   yaw: 90
 peaceLength: 60
 warLength: 60
+teamCount: 2

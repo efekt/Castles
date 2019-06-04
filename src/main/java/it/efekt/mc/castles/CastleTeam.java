@@ -1,20 +1,31 @@
 package it.efekt.mc.castles;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CastleTeam {
-    private List<Player> players = new ArrayList<>();
+    private List<String> players = new ArrayList<>();
     private String name;
 
 
     public boolean hasPlayer(Player player){
-        return this.players.contains(player);
+        return this.players.contains(player.getUniqueId().toString());
+    }
+
+    public boolean hasPlayerUUID(String playerUuid){
+        for (String uuid : this.players){
+            if (uuid.equalsIgnoreCase(playerUuid)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void addPlayer(Player player){
-        this.players.add(player);
+        this.players.add(player.getUniqueId().toString());
     }
 
     public void removePlayer(Player player){
@@ -24,12 +35,16 @@ public class CastleTeam {
     }
 
     public List<Player> getPlayers() {
+        List<Player> players = new ArrayList<>();
+        for (String uuid : this.players){
+            players.add(Bukkit.getPlayer(UUID.fromString(uuid)));
+        }
         return players;
     }
 
     public String getPlayersAsString(){
         String players = "";
-        for (Player player : this.players){
+        for (Player player : getPlayers()){
             players = players.concat(player.getName() + " ");
         }
 
@@ -37,6 +52,8 @@ public class CastleTeam {
     }
 
     public void setPlayers(List<Player> players) {
-        this.players = players;
+        for (Player player : players){
+            this.players.add(player.getUniqueId().toString());
+        }
     }
 }

@@ -11,7 +11,7 @@ public class CastlesManager {
         init();
     }
 
-    public void init(){
+    private void init(){
         // Unregister previously registered listener
         if (this.instance != null){
             HandlerList.unregisterAll(instance);

@@ -31,6 +31,10 @@ public class Config {
         return this.conf.getLong("warLength");
     }
 
+    public int getTeamCount(){
+        return this.conf.getInt("teamCount");
+    }
+
     public void reload(){
         this.plugin.reloadConfig();
     }

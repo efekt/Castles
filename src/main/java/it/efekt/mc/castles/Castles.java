@@ -13,6 +13,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,15 +27,18 @@ public class Castles implements Listener {
     private List<CastleTeam> teams = new ArrayList<>();
     private CastlesTimer mainTimer = new CastlesTimer(this);
     private Config config;
+    private Scoreboard scoreboard;
 
     public Castles(CastlesPlugin plugin){
         this.castlesPlugin = plugin;
         this.config = new Config(this.castlesPlugin);
         setGameState(GameState.LOBBY);
+        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     }
 
     public void start(){
-        randomizeTeams(1);
+        randomizeTeams(this.config.getTeamCount());
+        populateScoreboardTeams();
         progress();
     }
 
@@ -61,7 +68,23 @@ public class Castles implements Listener {
 
     }
 
+    private void populateScoreboardTeams(){
+        int i = 0;
+        Objective objective = this.scoreboard.registerNewObjective("totalKillCount ", "totalKillCount ");
+        objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
+        for (CastleTeam castleTeam : this.teams){
+            String teamName = "Team " + i;
+            Team team = scoreboard.registerNewTeam(teamName);
+            team.setColor(Utils.getChatColor(i));
+            team.setDisplayName(teamName);
+            for (Player player : castleTeam.getPlayers()){
+               team.addPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
+               player.setScoreboard(this.scoreboard);
+            }
+            i++;
+        }
+    }
 
     public void progress(){
         switch (this.gameState){
@@ -98,17 +121,17 @@ public class Castles implements Listener {
         Bukkit.broadcastMessage("The winners: " + winnerTeam.getPlayersAsString());
     }
 
-    public void startCountdown(){
+    private void startCountdown(){
         this.mainTimer = new CastlesTimer(this);
         this.mainTimer.setNextState(this.gameState);
         this.mainTimer.runTaskTimer(this.castlesPlugin, 0L, 20L);
     }
 
-    public void stopCountdown(){
+    private void stopCountdown(){
         this.mainTimer.setActive(false);
     }
 
-    public void setGameState(GameState gameState){
+    private void setGameState(GameState gameState){
         this.gameState = gameState;
     }
 
@@ -117,12 +140,21 @@ public class Castles implements Listener {
     }
 
     private CastleTeam getTeam(Player player){
+            for (CastleTeam team : this.teams) {
+                if (team.hasPlayer(player)) {
+                    return team;
+                }
+            }
+        return null;
+    }
+
+    private boolean isInTeam(String uuid){
         for (CastleTeam team : this.teams){
-            if (team.hasPlayer(player)){
-                return team;
+            if (team.hasPlayerUUID(uuid)){
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     public Config getConfig(){
@@ -133,7 +165,9 @@ public class Castles implements Listener {
     @EventHandler
     public void onPlayerJoin(AsyncPlayerPreLoginEvent e){
         if (!getGameState().equals(GameState.LOBBY)){
-            e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Game in progress...");
+            if (!isInTeam(e.getUniqueId().toString())){
+                e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Game in progress...");
+            }
             return;
         }
     }
