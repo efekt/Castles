@@ -6,6 +6,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -41,6 +42,13 @@ public class CastlesTimer extends BukkitRunnable {
         }
         for (Player player : Bukkit.getOnlinePlayers()){
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.DARK_AQUA + castles.getGameState().toString() + ": " + ChatColor.GOLD + currentTime));
+
+            if (!this.castles.getGameState().equals(GameState.PEACE) || !this.castles.getGameState().equals(GameState.WAR)){
+                player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                player.setFoodLevel(20);
+                player.setSaturation(20f);
+            }
+
         }
         --currentTime;
     }
