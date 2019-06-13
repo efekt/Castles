@@ -14,6 +14,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -41,7 +43,20 @@ public class Castles implements Listener {
     public void start(){
         randomizeTeams(this.config.getTeamCount());
         populateScoreboardTeams();
+        giveFlagsItems();
         progress();
+    }
+
+    private void giveFlagsItems(){
+        for (CastleTeam team : this.teams){
+            ItemStack flagItem = new ItemStack(this.FLAG, 1);
+            ItemMeta itemMeta = flagItem.getItemMeta();
+            Team scoreboardTeam = scoreboard.getPlayerTeam(Bukkit.getOfflinePlayer(team.getPlayers().get(0).getUniqueId()));
+            itemMeta.setDisplayName(scoreboardTeam.getColor() + scoreboardTeam.getDisplayName());
+            flagItem.setItemMeta(itemMeta);
+
+            team.getPlayers().get(0).getInventory().addItem(flagItem);
+        }
     }
 
     private void randomizeTeams(int teamNumber){
