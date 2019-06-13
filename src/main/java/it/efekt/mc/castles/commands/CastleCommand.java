@@ -39,6 +39,10 @@ public class CastleCommand implements CommandExecutor {
                     }
                     return true;
                 case "next":
+                    if (CastlesPlugin.castlesManager.getInstance() == null){
+                        sender.sendMessage("You need to start castles first!");
+                        return true;
+                    }
                     CastlesPlugin.castlesManager.progress();
                     return true;
                 case "reload":

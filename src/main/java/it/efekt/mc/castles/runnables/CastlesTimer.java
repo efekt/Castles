@@ -46,7 +46,6 @@ public class CastlesTimer extends BukkitRunnable {
             if (this.castles.getGameState().equals(GameState.LOBBY) || this.castles.getGameState().equals(GameState.PREPARATION)){
                 player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                 player.setFoodLevel(20);
-                player.setSaturation(20f);
             }
 
         }
