@@ -1,6 +1,8 @@
 package it.efekt.mc.castles;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +11,9 @@ import java.util.UUID;
 public class CastleTeam {
     private List<String> players = new ArrayList<>();
     private String name;
+    private Block flagBlock;
+    private ChatColor flagColor;
+    private String flagName;
 
 
     public boolean hasPlayer(Player player){
@@ -55,5 +60,29 @@ public class CastleTeam {
         for (Player player : players){
             this.players.add(player.getUniqueId().toString());
         }
+    }
+
+    public void updateFlagBlock(Block block){
+        this.flagBlock = block;
+    }
+
+    public Block getFlagBlock(){
+        return this.flagBlock;
+    }
+
+    public ChatColor getFlagColor() {
+        return flagColor;
+    }
+
+    public void setFlagColor(ChatColor flagColor) {
+        this.flagColor = flagColor;
+    }
+
+    public String getFlagName() {
+        return flagName;
+    }
+
+    public void setFlagName(String flagName) {
+        this.flagName = flagName;
     }
 }

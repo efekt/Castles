@@ -2,6 +2,7 @@ name: Castles
 author: efekt
 version: ${project.version}
 main: it.efekt.mc.castles.CastlesPlugin
+softdepend: [ItemNBTAPI]
 commands:
   castles:
     description: base Castles command
