@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -28,6 +29,7 @@ public class Castles implements Listener {
     private CastlesTimer mainTimer = new CastlesTimer(this);
     private Config config;
     private Scoreboard scoreboard;
+    private final Material FLAG = Material.SPONGE;
 
     public Castles(CastlesPlugin plugin){
         this.castlesPlugin = plugin;
@@ -186,8 +188,8 @@ public class Castles implements Listener {
 
     // Disable any entity damage if game is not in a war mode
     @EventHandler
-    public void onPlayerAttack(EntityDamageEvent e){
-        if (!getGameState().equals(GameState.WAR) && (e.getEntity() instanceof Player)){
+    public void onPlayerAttack(EntityDamageByEntityEvent e){
+        if (!getGameState().equals(GameState.WAR) && ((e.getEntity() instanceof Player) && (e.getDamager() instanceof Player))){
             e.setCancelled(true);
         }
     }
@@ -211,7 +213,7 @@ public class Castles implements Listener {
         Material itemInHand = e.getPlayer().getInventory().getItemInMainHand().getType();
         try {
             Material clickedBlock = block.getBlockData().getMaterial();
-            if (clickedBlock.equals(Material.SPONGE) && itemInHand.equals(Material.SPONGE)) {
+            if (clickedBlock.equals(FLAG) && itemInHand.equals(FLAG)) {
                 setGameState(GameState.FINISHED);
                 progress();
                 announceWinners(getTeam(e.getPlayer()));

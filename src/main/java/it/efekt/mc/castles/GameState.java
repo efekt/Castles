@@ -1,10 +1,10 @@
 package it.efekt.mc.castles;
 
 public enum GameState {
-    LOBBY(999),
-    PREPARATION(60),
-    PEACE(60),
-    WAR(60),
+    LOBBY(2700),
+    PREPARATION(2700),
+    PEACE(2700),
+    WAR(2700),
     FINISHED(0);
 
     private long time;
