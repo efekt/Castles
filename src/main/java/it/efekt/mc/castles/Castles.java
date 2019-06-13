@@ -5,6 +5,7 @@ import it.efekt.mc.castles.runnables.CastlesTimer;
 import it.efekt.mc.castles.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -196,16 +197,12 @@ public class Castles implements Listener {
         return this.scoreboard.getPlayerTeam(Bukkit.getOfflinePlayer(player.getUniqueId())).getColor();
     }
 
-    private CastleTeam getTeamFromFlag(Block block){
-        try {
+    private CastleTeam getTeamFromFlag(Location location){
             for (CastleTeam castleTeam : this.teams) {
-                if (castleTeam.getFlagBlock().equals(block)) {
+                if (castleTeam.getFlagBlockLocation() != null && castleTeam.getFlagBlockLocation().equals(location)) {
                     return castleTeam;
                 }
             }
-        } catch (NullPointerException exc){
-            return null;
-        }
         return null;
     }
 
@@ -296,23 +293,27 @@ public class Castles implements Listener {
         }
 
         CastleTeam castleTeam =  getTeam(e.getPlayer());
-        castleTeam.updateFlagBlock(e.getBlockPlaced());
+        castleTeam.updateFlagBlock(e.getBlockPlaced().getLocation());
         castleTeam.setFlagName(nbtItem.getString("castlesFlagId"));
         castleTeam.setFlagColor(ChatColor.valueOf(nbtItem.getString("castlesFlagColor")));
+        castleTeam.setFlagPlaced(true);
         Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " placed " + castleTeam.getFlagColor() + castleTeam.getFlagName());
-
+        System.out.println(castleTeam.getFlagBlockLocation().toVector().toString());
     }
 
     @EventHandler
     public void onPlayerFlagBreak(BlockBreakEvent e){
-        if (getTeamFromFlag(e.getBlock()) != null){
-            e.setDropItems(false);
-            CastleTeam castleTeam = getTeamFromFlag(e.getBlock());
-            castleTeam.updateFlagBlock(null);
-            e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), createFlag(castleTeam.getFlagName(), castleTeam.getFlagColor()));
-            Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " broke " + castleTeam.getFlagColor() + castleTeam.getFlagName());
-
+        if (!getTeamFromFlag(e.getBlock().getLocation()).isFlagPlaced()){
+            return;
         }
+
+        e.setDropItems(false);
+        CastleTeam castleTeam = getTeamFromFlag(e.getBlock().getLocation());
+        System.out.println(castleTeam.getFlagBlockLocation().toVector().toString());
+        castleTeam.updateFlagBlock(null);
+        e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), createFlag(castleTeam.getFlagName(), castleTeam.getFlagColor()));
+        Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " broke " + castleTeam.getFlagColor() + castleTeam.getFlagName());
+
     }
 
     private ItemStack createFlag(String displayName, ChatColor color){

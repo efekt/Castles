@@ -2,7 +2,7 @@ package it.efekt.mc.castles;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.block.Block;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,8 @@ import java.util.UUID;
 public class CastleTeam {
     private List<String> players = new ArrayList<>();
     private String name;
-    private Block flagBlock;
+    private boolean isFlagPlaced = false;
+    private Location flagBlockLocation;
     private ChatColor flagColor;
     private String flagName;
 
@@ -39,6 +40,14 @@ public class CastleTeam {
         }
     }
 
+    public boolean isFlagPlaced() {
+        return isFlagPlaced;
+    }
+
+    public void setFlagPlaced(boolean flagPlaced) {
+        isFlagPlaced = flagPlaced;
+    }
+
     public List<Player> getPlayers() {
         List<Player> players = new ArrayList<>();
         for (String uuid : this.players){
@@ -62,12 +71,17 @@ public class CastleTeam {
         }
     }
 
-    public void updateFlagBlock(Block block){
-        this.flagBlock = block;
+    public void updateFlagBlock(Location location){
+        if (location == null){
+            this.isFlagPlaced = false;
+            return;
+        }
+
+        this.flagBlockLocation = location;
     }
 
-    public Block getFlagBlock(){
-        return this.flagBlock;
+    public Location getFlagBlockLocation(){
+        return this.flagBlockLocation;
     }
 
     public ChatColor getFlagColor() {
