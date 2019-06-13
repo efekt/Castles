@@ -44,6 +44,7 @@ public class Castles implements Listener {
         randomizeTeams(this.config.getTeamCount());
         populateScoreboardTeams();
         giveFlagsItems();
+        healAllPlayers();
         progress();
     }
 
@@ -56,6 +57,14 @@ public class Castles implements Listener {
             flagItem.setItemMeta(itemMeta);
 
             team.getPlayers().get(0).getInventory().addItem(flagItem);
+        }
+    }
+
+    private void healAllPlayers(){
+        for (Player player : Bukkit.getOnlinePlayers()){
+            player.setSaturation(20f);
+            player.setHealth(20);
+            player.setFoodLevel(20);
         }
     }
 
