@@ -49,6 +49,6 @@ public class CastlesTimer extends BukkitRunnable {
             }
 
         }
-        --currentTime;
+        -- currentTime;
     }
 }

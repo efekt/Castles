@@ -10,8 +10,6 @@ import java.util.UUID;
 
 public class CastleTeam {
     private List<String> players = new ArrayList<>();
-    private String name;
-    private boolean isFlagPlaced = false;
     private Location flagBlockLocation;
     private ChatColor flagColor;
     private String flagName;
@@ -22,31 +20,13 @@ public class CastleTeam {
     }
 
     public boolean hasPlayerUUID(String playerUuid){
-        for (String uuid : this.players){
-            if (uuid.equalsIgnoreCase(playerUuid)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void addPlayer(Player player){
-        this.players.add(player.getUniqueId().toString());
-    }
-
-    public void removePlayer(Player player){
-        if (hasPlayer(player)){
-            this.players.remove(player);
-        }
+       return this.players.stream().anyMatch(item -> item.equalsIgnoreCase(playerUuid));
     }
 
     public boolean isFlagPlaced() {
-        return isFlagPlaced;
+        return this.flagBlockLocation != null;
     }
 
-    public void setFlagPlaced(boolean flagPlaced) {
-        isFlagPlaced = flagPlaced;
-    }
 
     public List<Player> getPlayers() {
         List<Player> players = new ArrayList<>();
@@ -72,11 +52,6 @@ public class CastleTeam {
     }
 
     public void updateFlagBlock(Location location){
-        if (location == null){
-            this.isFlagPlaced = false;
-            return;
-        }
-
         this.flagBlockLocation = location;
     }
 
@@ -85,7 +60,7 @@ public class CastleTeam {
     }
 
     public ChatColor getFlagColor() {
-        return flagColor;
+        return this.flagColor;
     }
 
     public void setFlagColor(ChatColor flagColor) {

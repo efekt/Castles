@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -105,6 +106,7 @@ public class Castles implements Listener {
             String teamName = "Team " + i;
             Team team = scoreboard.registerNewTeam(teamName);
             team.setColor(Utils.getChatColor(i-1));
+            castleTeam.setFlagColor(team.getColor());
             team.setDisplayName(teamName);
             for (Player player : castleTeam.getPlayers()){
                team.addPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
@@ -180,6 +182,15 @@ public class Castles implements Listener {
         return null;
     }
 
+    private CastleTeam getTeam(ChatColor color){
+        for (CastleTeam team : this.teams){
+            if (team.getFlagColor() != null && team.getFlagColor().name().equalsIgnoreCase(color.name())){
+                return team;
+            }
+        }
+        return null;
+    }
+
     private boolean isInTeam(String uuid){
         for (CastleTeam team : this.teams){
             if (team.hasPlayerUUID(uuid)){
@@ -198,12 +209,17 @@ public class Castles implements Listener {
     }
 
     private CastleTeam getTeamFromFlag(Location location){
+        CastleTeam team = null;
             for (CastleTeam castleTeam : this.teams) {
-                if (castleTeam.getFlagBlockLocation() != null && castleTeam.getFlagBlockLocation().equals(location)) {
-                    return castleTeam;
+                if (castleTeam.isFlagPlaced()){
+                    if (castleTeam.getFlagBlockLocation() != null){
+                        if (castleTeam.getFlagBlockLocation().equals(location)){
+                            team = castleTeam;
+                        }
+                    }
                 }
             }
-        return null;
+        return team;
     }
 
     // Do not allow players to join while match is in progress
@@ -243,7 +259,7 @@ public class Castles implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onSpongePlace(PlayerInteractEvent e){
         if (getGameState().equals(GameState.FINISHED)){
             return;
@@ -260,7 +276,7 @@ public class Castles implements Listener {
         } catch (NullPointerException exc){}
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerItemDrop(PlayerDropItemEvent e){
         ItemStack itemStack = e.getItemDrop().getItemStack();
         NBTItem nbtItem = new NBTItem(itemStack);
@@ -271,7 +287,7 @@ public class Castles implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerFlagPickup(EntityPickupItemEvent e){
         if (e.getEntity() instanceof Player){
             Player player = (Player) e.getEntity();
@@ -285,35 +301,40 @@ public class Castles implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerFlagPlace(BlockPlaceEvent e){
+
         NBTItem nbtItem = new NBTItem(e.getItemInHand());
         if (!nbtItem.hasKey("castlesFlagId")){
             return;
         }
 
-        CastleTeam castleTeam =  getTeam(e.getPlayer());
-        castleTeam.updateFlagBlock(e.getBlockPlaced().getLocation());
+        ChatColor teamColor = ChatColor.valueOf(nbtItem.getString("castlesFlagColor"));
+
+        CastleTeam castleTeam = getTeam(teamColor);
+        Location blockLocation = e.getBlockPlaced().getLocation();
+        castleTeam.updateFlagBlock(blockLocation);
         castleTeam.setFlagName(nbtItem.getString("castlesFlagId"));
-        castleTeam.setFlagColor(ChatColor.valueOf(nbtItem.getString("castlesFlagColor")));
-        castleTeam.setFlagPlaced(true);
+        castleTeam.setFlagColor(teamColor);
         Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " placed " + castleTeam.getFlagColor() + castleTeam.getFlagName());
-        System.out.println(castleTeam.getFlagBlockLocation().toVector().toString());
+        System.out.println(castleTeam.getFlagBlockLocation().toString());
+        System.out.println("after placed: " + getTeamFromFlag(e.getBlockPlaced().getLocation()).getFlagName());
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onPlayerFlagBreak(BlockBreakEvent e){
+        System.out.println(e.getBlock().getLocation().toString());
+
         if (!getTeamFromFlag(e.getBlock().getLocation()).isFlagPlaced()){
             return;
         }
 
         e.setDropItems(false);
         CastleTeam castleTeam = getTeamFromFlag(e.getBlock().getLocation());
-        System.out.println(castleTeam.getFlagBlockLocation().toVector().toString());
-        castleTeam.updateFlagBlock(null);
+        System.out.println(castleTeam.getFlagBlockLocation().toString());
         e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), createFlag(castleTeam.getFlagName(), castleTeam.getFlagColor()));
         Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " broke " + castleTeam.getFlagColor() + castleTeam.getFlagName());
-
+        castleTeam.updateFlagBlock(null);
     }
 
     private ItemStack createFlag(String displayName, ChatColor color){
