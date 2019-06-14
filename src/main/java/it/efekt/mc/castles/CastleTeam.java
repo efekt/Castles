@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Team;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,9 +12,11 @@ import java.util.UUID;
 public class CastleTeam {
     private List<String> players = new ArrayList<>();
     private Location flagBlockLocation;
-    private ChatColor flagColor;
-    private String flagName;
+    private Team scoreboardTeam;
 
+    public boolean isFlagPlaced() {
+        return this.flagBlockLocation != null;
+    }
 
     public boolean hasPlayer(Player player){
         return this.players.contains(player.getUniqueId().toString());
@@ -22,11 +25,6 @@ public class CastleTeam {
     public boolean hasPlayerUUID(String playerUuid){
        return this.players.stream().anyMatch(item -> item.equalsIgnoreCase(playerUuid));
     }
-
-    public boolean isFlagPlaced() {
-        return this.flagBlockLocation != null;
-    }
-
 
     public List<Player> getPlayers() {
         List<Player> players = new ArrayList<>();
@@ -59,19 +57,20 @@ public class CastleTeam {
         return this.flagBlockLocation;
     }
 
-    public ChatColor getFlagColor() {
-        return this.flagColor;
-    }
-
-    public void setFlagColor(ChatColor flagColor) {
-        this.flagColor = flagColor;
-    }
 
     public String getFlagName() {
-        return flagName;
+        return this.scoreboardTeam.getName();
     }
 
-    public void setFlagName(String flagName) {
-        this.flagName = flagName;
+    public ChatColor getFlagColor(){
+        return this.scoreboardTeam.getColor();
+    }
+
+    public Team getScoreboardTeam() {
+        return scoreboardTeam;
+    }
+
+    public void setScoreboardTeam(Team scoreboardTeam) {
+        this.scoreboardTeam = scoreboardTeam;
     }
 }

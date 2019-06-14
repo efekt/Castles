@@ -38,6 +38,7 @@ public class Castles implements Listener {
     private Config config;
     private Scoreboard scoreboard;
     private final Material FLAG = Material.SPONGE;
+    private final String TEAM_BASE_NAME = "Team";
 
     public Castles(CastlesPlugin plugin){
         this.castlesPlugin = plugin;
@@ -103,11 +104,11 @@ public class Castles implements Listener {
         objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
         for (CastleTeam castleTeam : this.teams){
-            String teamName = "Team " + i;
+            String teamName = TEAM_BASE_NAME + " " + i;
             Team team = scoreboard.registerNewTeam(teamName);
             team.setColor(Utils.getChatColor(i-1));
-            castleTeam.setFlagColor(team.getColor());
             team.setDisplayName(teamName);
+            castleTeam.setScoreboardTeam(team);
             for (Player player : castleTeam.getPlayers()){
                team.addPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
                player.setScoreboard(this.scoreboard);
@@ -314,8 +315,6 @@ public class Castles implements Listener {
         CastleTeam castleTeam = getTeam(teamColor);
         Location blockLocation = e.getBlockPlaced().getLocation();
         castleTeam.updateFlagBlock(blockLocation);
-        castleTeam.setFlagName(nbtItem.getString("castlesFlagId"));
-        castleTeam.setFlagColor(teamColor);
         Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " placed " + castleTeam.getFlagColor() + castleTeam.getFlagName());
         System.out.println(castleTeam.getFlagBlockLocation().toString());
         System.out.println("after placed: " + getTeamFromFlag(e.getBlockPlaced().getLocation()).getFlagName());
