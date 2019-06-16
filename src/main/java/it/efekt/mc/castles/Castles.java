@@ -1,6 +1,8 @@
 package it.efekt.mc.castles;
 
 import de.tr7zw.itemnbtapi.NBTItem;
+import it.efekt.mc.castles.events.FlagBreakEvent;
+import it.efekt.mc.castles.listeners.CastlesListener;
 import it.efekt.mc.castles.runnables.CastlesTimer;
 import it.efekt.mc.castles.utils.Utils;
 import org.bukkit.Bukkit;
@@ -10,7 +12,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -31,7 +32,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class Castles implements Listener {
-    private CastlesPlugin castlesPlugin;
+    private CastlesPlugin plugin;
+    private CastlesListener castlesListener;
     private GameState gameState = GameState.LOBBY;
     private List<CastleTeam> teams = new ArrayList<>();
     private CastlesTimer mainTimer = new CastlesTimer(this);
@@ -41,8 +43,10 @@ public class Castles implements Listener {
     private final String TEAM_BASE_NAME = "Team";
 
     public Castles(CastlesPlugin plugin){
-        this.castlesPlugin = plugin;
-        this.config = new Config(this.castlesPlugin);
+        this.plugin = plugin;
+        this.castlesListener = new CastlesListener(plugin);
+        this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.config = new Config(this.plugin);
         setGameState(GameState.LOBBY);
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     }
@@ -52,7 +56,7 @@ public class Castles implements Listener {
         populateScoreboardTeams();
         resetAllPlayers();
         giveFlagsItems();
-        progress();
+        next();
     }
 
     private void giveFlagsItems(){
@@ -117,7 +121,7 @@ public class Castles implements Listener {
         }
     }
 
-    public void progress(){
+    public void next(){
         switch (this.gameState){
             case LOBBY:
                 stopCountdown();
@@ -159,7 +163,7 @@ public class Castles implements Listener {
     private void startCountdown(){
         this.mainTimer = new CastlesTimer(this);
         this.mainTimer.setNextState(this.gameState);
-        this.mainTimer.runTaskTimer(this.castlesPlugin, 0L, 20L);
+        this.mainTimer.runTaskTimer(this.plugin, 0L, 20L);
     }
 
     private void stopCountdown(){
@@ -185,11 +189,15 @@ public class Castles implements Listener {
 
     private CastleTeam getTeam(ChatColor color){
         for (CastleTeam team : this.teams){
-            if (team.getFlagColor() != null && team.getFlagColor().name().equalsIgnoreCase(color.name())){
+            if (team.getColor() != null && team.getColor().name().equalsIgnoreCase(color.name())){
                 return team;
             }
         }
         return null;
+    }
+
+    private boolean isInTeam(Player player){
+        return isInTeam(player.getUniqueId().toString());
     }
 
     private boolean isInTeam(String uuid){
@@ -225,7 +233,7 @@ public class Castles implements Listener {
 
     // Do not allow players to join while match is in progress
     @EventHandler
-    public void onPlayerJoin(AsyncPlayerPreLoginEvent e){
+    public void onPlayerPreLogin(AsyncPlayerPreLoginEvent e){
         if (!getGameState().equals(GameState.LOBBY)){
             if (!isInTeam(e.getUniqueId().toString())){
                 e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Game in progress...");
@@ -235,10 +243,13 @@ public class Castles implements Listener {
     }
 
     @EventHandler
-    public void onPlayerLogin(PlayerJoinEvent e){
+    public void onPlayerJoin(PlayerJoinEvent e){
         if (getGameState().equals(GameState.LOBBY)){
             e.getPlayer().teleport(this.config.getSpawnLocation());
-            return;
+        }
+
+        if (isInTeam(e.getPlayer())){
+            e.getPlayer().setScoreboard(this.scoreboard);
         }
     }
 
@@ -260,7 +271,7 @@ public class Castles implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onSpongePlace(PlayerInteractEvent e){
         if (getGameState().equals(GameState.FINISHED)){
             return;
@@ -271,13 +282,13 @@ public class Castles implements Listener {
             Material clickedBlock = block.getBlockData().getMaterial();
             if (clickedBlock.equals(FLAG) && itemInHand.equals(FLAG)) {
                 setGameState(GameState.FINISHED);
-                progress();
+                next();
                 announceWinners(getTeam(e.getPlayer()));
             }
         } catch (NullPointerException exc){}
     }
 
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerItemDrop(PlayerDropItemEvent e){
         ItemStack itemStack = e.getItemDrop().getItemStack();
         NBTItem nbtItem = new NBTItem(itemStack);
@@ -288,7 +299,7 @@ public class Castles implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerFlagPickup(EntityPickupItemEvent e){
         if (e.getEntity() instanceof Player){
             Player player = (Player) e.getEntity();
@@ -302,7 +313,7 @@ public class Castles implements Listener {
         }
     }
 
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerFlagPlace(BlockPlaceEvent e){
 
         NBTItem nbtItem = new NBTItem(e.getItemInHand());
@@ -314,27 +325,30 @@ public class Castles implements Listener {
 
         CastleTeam castleTeam = getTeam(teamColor);
         Location blockLocation = e.getBlockPlaced().getLocation();
-        castleTeam.updateFlagBlock(blockLocation);
-        Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " placed " + castleTeam.getFlagColor() + castleTeam.getFlagName());
+        castleTeam.updateFlagBlockLocation(blockLocation);
+        Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " placed " + castleTeam.getColor() + castleTeam.getName());
         System.out.println(castleTeam.getFlagBlockLocation().toString());
-        System.out.println("after placed: " + getTeamFromFlag(e.getBlockPlaced().getLocation()).getFlagName());
+        System.out.println("after placed: " + getTeamFromFlag(e.getBlockPlaced().getLocation()).getName());
     }
 
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onPlayerFlagBreak(BlockBreakEvent e){
-        System.out.println(e.getBlock().getLocation().toString());
-
         if (!getTeamFromFlag(e.getBlock().getLocation()).isFlagPlaced()){
             return;
         }
-
+        // prevent block from dropping natural items
         e.setDropItems(false);
-        CastleTeam castleTeam = getTeamFromFlag(e.getBlock().getLocation());
-        System.out.println(castleTeam.getFlagBlockLocation().toString());
-        e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), createFlag(castleTeam.getFlagName(), castleTeam.getFlagColor()));
-        Bukkit.broadcastMessage(getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " broke " + castleTeam.getFlagColor() + castleTeam.getFlagName());
-        castleTeam.updateFlagBlock(null);
+        CastleTeam flagTeam = getTeamFromFlag(e.getBlock().getLocation());
+        // drop it manually with pre-created item with nbt-tags
+        e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), createFlag(flagTeam.getName(), flagTeam.getColor()));
+        // set flagBlockLocation as null
+        flagTeam.updateFlagBlockLocation(null);
+
+        // Calling Castles Event to separate Minecraft logic from castles logic and messaging
+        FlagBreakEvent flagBreakEvent = new FlagBreakEvent(e.getPlayer(), flagTeam, getTeam(e.getPlayer()));
+        Bukkit.getServer().getPluginManager().callEvent(flagBreakEvent);
     }
+
 
     private ItemStack createFlag(String displayName, ChatColor color){
         ItemStack flagItem = new ItemStack(this.FLAG, 1);

@@ -28,7 +28,7 @@ public class CastlesTimer extends BukkitRunnable {
     }
 
     private void progress(){
-        this.castles.progress();
+        this.castles.next();
     }
 
     @Override

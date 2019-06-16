@@ -13,11 +13,10 @@ public class CastlesManager {
     private void init(){
         // Unregister previously registered listener
         if (this.instance != null){
-            HandlerList.unregisterAll(instance);
+            HandlerList.unregisterAll(plugin);
         }
 
         this.instance = new Castles(this.plugin);
-        this.plugin.getServer().getPluginManager().registerEvents(this.instance, this.plugin);
 
     }
 
@@ -27,7 +26,7 @@ public class CastlesManager {
     }
 
     public void progress(){
-        this.instance.progress();
+        this.instance.next();
     }
 
     public Castles getInstance(){

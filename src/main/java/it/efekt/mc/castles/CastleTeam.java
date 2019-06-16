@@ -49,7 +49,7 @@ public class CastleTeam {
         }
     }
 
-    public void updateFlagBlock(Location location){
+    public void updateFlagBlockLocation(Location location){
         this.flagBlockLocation = location;
     }
 
@@ -58,11 +58,11 @@ public class CastleTeam {
     }
 
 
-    public String getFlagName() {
+    public String getName() {
         return this.scoreboardTeam.getName();
     }
 
-    public ChatColor getFlagColor(){
+    public ChatColor getColor(){
         return this.scoreboardTeam.getColor();
     }
 
