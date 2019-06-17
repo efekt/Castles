@@ -35,6 +35,10 @@ public class Config {
         return this.conf.getInt("teamCount");
     }
 
+    public int getFlagNoPvpZoneRadius(){
+        return this.conf.getInt("flagPvpZoneRadius");
+    }
+
     public void reload(){
         this.plugin.reloadConfig();
     }

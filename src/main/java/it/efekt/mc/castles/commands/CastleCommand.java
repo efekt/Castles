@@ -1,9 +1,6 @@
 package it.efekt.mc.castles.commands;
 
-import it.efekt.mc.castles.CastleTeam;
-import it.efekt.mc.castles.Castles;
-import it.efekt.mc.castles.CastlesPlugin;
-import it.efekt.mc.castles.Config;
+import it.efekt.mc.castles.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -39,7 +36,7 @@ public class CastleCommand implements CommandExecutor {
                     }
                     return true;
                 case "next":
-                    if (CastlesPlugin.castlesManager.getInstance() == null){
+                    if (CastlesPlugin.castlesManager.getInstance() == null || CastlesPlugin.castlesManager.getInstance().getGameState().equals(GameState.LOBBY)){
                         sender.sendMessage("You need to start castles first!");
                         return true;
                     }

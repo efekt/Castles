@@ -7,3 +7,4 @@ spawn:
 peaceLength: 60
 warLength: 60
 teamCount: 2
+flagPvpZoneRadius: 50

@@ -8,6 +8,7 @@ public class CastlesManager {
 
     public CastlesManager(CastlesPlugin castles){
         this.plugin = castles;
+        init();
     }
 
     private void init(){
