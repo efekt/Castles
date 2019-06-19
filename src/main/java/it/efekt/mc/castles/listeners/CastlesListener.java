@@ -9,16 +9,18 @@ import it.efekt.mc.castles.events.FlagBreakEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 public class CastlesListener implements Listener {
@@ -101,36 +103,44 @@ public class CastlesListener implements Listener {
     }
 
     @EventHandler
-    public void onSpongePlace(PlayerInteractEvent e){
-        if (getCastles().getGameState().equals(GameState.FINISHED)){
-            return;
-        }
-        Block block = e.getClickedBlock();
-        Material itemInHand = e.getPlayer().getInventory().getItemInMainHand().getType();
-        try {
-            Material clickedBlock = block.getBlockData().getMaterial();
-            if (clickedBlock.equals(Castles.FLAG) && itemInHand.equals(Castles.FLAG)) {
-                getCastles().setGameState(GameState.FINISHED);
-                getCastles().next();
-                getCastles().announceWinners(getCastles().getTeam(e.getPlayer()));
-            }
-        } catch (NullPointerException exc){}
-    }
-
-    @EventHandler
     public void onPlayerItemDrop(PlayerDropItemEvent e){
         if (!(getCastles().getGameState().equals(GameState.WAR) || getCastles().getGameState().equals(GameState.PEACE))){
             e.setCancelled(true);
             return;
         }
 
-
-        ItemStack itemStack = e.getItemDrop().getItemStack();
-        NBTItem nbtItem = new NBTItem(itemStack);
+        NBTItem nbtItem = new NBTItem(e.getItemDrop().getItemStack());
         if (nbtItem.hasKey("castlesFlagColor")){
+
+            Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, ()->{
+                System.out.println("isOnGround: " + e.getItemDrop().getLocation().toString());
+
+                CastleTeam flagTeam = getCastles().getTeamFromFlag(e.getItemDrop().getItemStack());
+
+                // check if there is any entity that looks like our flag on the ground
+                List<Entity> nearbyEntities = new ArrayList<>();
+                nearbyEntities.addAll(e.getItemDrop().getLocation().getWorld().getNearbyEntities(e.getItemDrop().getBoundingBox()));
+                if (!nearbyEntities.contains(e.getItemDrop())){
+                    return;
+                }
+
+                if (flagTeam.getFlagBlockOriginLocation() == null){
+                    // place block in location of itemstack in the world
+                    Location currentItemLoc = e.getItemDrop().getLocation().getBlock().getLocation();
+                    currentItemLoc.getBlock().setType(Castles.FLAG);
+                    flagTeam.updateFlagBlockLocation(currentItemLoc);
+                    e.getItemDrop().remove();
+                } else{
+                    // place flag back onto an original location if set
+                    flagTeam.getFlagBlockOriginLocation().getBlock().setType(Castles.FLAG);
+                    flagTeam.updateFlagBlockLocation(flagTeam.getFlagBlockOriginLocation());
+                    e.getItemDrop().remove();
+                }
+
+            }, 100);
+
             ChatColor teamColor = ChatColor.valueOf(nbtItem.getString("castlesFlagColor"));
             String droppedFlagName = teamColor + getCastles().getTeam(teamColor).getName();
-
             Bukkit.broadcastMessage(getCastles().getPlayerTeamColor(e.getPlayer()) + e.getPlayer().getName() + ChatColor.WHITE + " dropped " + droppedFlagName);
         }
     }
@@ -188,10 +198,41 @@ public class CastlesListener implements Listener {
             return;
         }
 
+
         if (getCastles().getGameState().equals(GameState.WAR)){
-            if (!getCastles().getTeam(e.getPlayer()).getFlagBlockOriginLocation().equals(e.getBlockPlaced().getLocation())){
+            // do not allow flag to be place elsewhere besides of it's original location
+            if (!getCastles().getTeamFromFlag(nbtItem.getItem()).getFlagBlockOriginLocation().equals(e.getBlockPlaced().getLocation())){
+                // if player tries to place a flag from different team than player's
+                if (!getCastles().getTeamFromFlag(nbtItem.getItem()).equals(getCastles().getTeam(e.getPlayer()))){
+                    // checking if placing next to enemy's flag
+                    for (CastleTeam castleTeam : getCastles().getTeams()){
+                        if (castleTeam.getFlagBlockOriginLocation() == null){
+                            continue;
+                        }
+                        if (castleTeam.getFlagBlockOriginLocation() != null && castleTeam.equals(getCastles().getTeamFromFlag(nbtItem.getItem()))){
+                            continue;
+                        }
+
+                        Block otherFlag = castleTeam.getFlagBlockOriginLocation().getBlock();
+                        double distance = otherFlag.getLocation().distance(e.getBlockPlaced().getLocation());
+                        if (distance <= 1){
+
+                            getCastles().setGameState(GameState.FINISHED);
+                            getCastles().next();
+                            getCastles().announceWinners(castleTeam);
+
+                            e.setCancelled(false);
+                            return;
+                        }
+
+                    }
+                    e.setCancelled(true);
+                    return;
+                }
                 e.setCancelled(true);
                 return;
+            } else {
+                e.setCancelled(false);
             }
         }
 
@@ -222,8 +263,14 @@ public class CastlesListener implements Listener {
         }
 
         if (getCastles().getGameState().equals(GameState.WAR) && getCastles().getTeamFromFlag(e.getBlock()).getPlayers().contains(player)){
-            player.sendMessage("You cannot dig up your own flag while in War mode");
             e.setCancelled(true);
+            player.sendMessage("You cannot dig up your own flag while in War mode");
+            return;
+        }
+
+        if (getCastles().getGameState().equals(GameState.PEACE) && !getCastles().getTeamFromFlag(e.getBlock()).equals(getCastles().getTeam(player))){
+            e.setCancelled(true);
+            player.sendMessage("During Peace mode you cannot steal a flag!");
             return;
         }
 
@@ -267,11 +314,10 @@ public class CastlesListener implements Listener {
         }
     }
 
+    //Prevent explosion
     @EventHandler
-    public void onFlagExplode(BlockExplodeEvent e){
-        if (getCastles().getTeamFromFlag(e.getBlock()) != null){
-            e.setCancelled(true);
-        }
+    public void onFlagExplode(EntityExplodeEvent e){
+        e.blockList().removeIf(block -> getCastles().getTeamFromFlag(block) !=null);
     }
 
     @EventHandler
@@ -284,12 +330,41 @@ public class CastlesListener implements Listener {
     }
 
     @EventHandler
-    public void onPistonExtend(BlockPistonRetractEvent e){
+    public void onPistonRetract(BlockPistonRetractEvent e){
         for (Block block : e.getBlocks()){
             if (getCastles().getTeamFromFlag(block) != null){
                 e.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler
+    public void onFlagDestroyByBlock(EntityDamageByBlockEvent e){
+        if (e.getEntity() instanceof Item){
+            Item item = (Item) e.getEntity();
+            if (new NBTItem(item.getItemStack()).hasKey(Castles.FLAG_COLOR_NBT_STRING)){
+                item.setFireTicks(0);
+                item.setInvulnerable(true);
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onFlagCombustByBlock(EntityCombustByBlockEvent e){
+        if (e.getEntity() instanceof Item){
+            Item item = (Item) e.getEntity();
+            if (new NBTItem(item.getItemStack()).hasKey(Castles.FLAG_COLOR_NBT_STRING)){
+                item.setInvulnerable(true);
+                item.setFireTicks(0);
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent e){
+        e.setRespawnLocation(getCastles().getConfig().getSpawnLocation());
     }
 
 }

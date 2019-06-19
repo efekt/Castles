@@ -56,6 +56,7 @@ public class CastleTeam {
         this.flagBlockLocation = location;
         if (location != null){
             this.flagBlockOriginLocation = location.clone();
+            Bukkit.getLogger().info("Team: " + getColor().name() + " moved flag to: " + getFlagBlockOriginLocation().toString());
         }
     }
 
@@ -68,7 +69,6 @@ public class CastleTeam {
     }
 
     public Location getFlagBlockOriginLocation() {
-        System.out.println(this.flagBlockOriginLocation.toString());
         return flagBlockOriginLocation;
     }
 

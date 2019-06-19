@@ -49,7 +49,7 @@ public class CastlesTimer extends BukkitRunnable {
                 player.setFoodLevel(20);
             }
 
-            castles.getTeams().forEach(CastleTeam::updateCompass);
+           // castles.getTeams().forEach(CastleTeam::updateCompass);
 
 
         }
