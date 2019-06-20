@@ -64,10 +64,6 @@ public class CastleTeam {
         return this.flagBlockLocation;
     }
 
-    public void setFlagBlockLocation(Location flagBlockLocation) {
-        this.flagBlockLocation = flagBlockLocation;
-    }
-
     public Location getFlagBlockOriginLocation() {
         return flagBlockOriginLocation;
     }
@@ -102,16 +98,18 @@ public class CastleTeam {
         }
     }
 
+    // moves flag to it's original location and removes it from player's inventory
+    public void moveFlagToOrigin(){
+        getFlagBlockOriginLocation().getBlock().setType(Castles.FLAG);
+        updateFlagBlockLocation(getFlagBlockOriginLocation());
+    }
+
     public String getName() {
         return this.scoreboardTeam.getName();
     }
 
     public ChatColor getColor(){
         return this.scoreboardTeam.getColor();
-    }
-
-    public Team getScoreboardTeam() {
-        return scoreboardTeam;
     }
 
     public void setScoreboardTeam(Team scoreboardTeam) {

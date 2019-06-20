@@ -16,10 +16,7 @@ public class CastleCommand implements CommandExecutor {
             sender.sendMessage("This command can by only used as a Player");
             return true;
         }
-        Player player = (Player) sender;
-
         if (args.length == 1){
-
             switch (args[0]){
                 case "start":
                     CastlesPlugin.castlesManager.start();
@@ -48,9 +45,7 @@ public class CastleCommand implements CommandExecutor {
                     return true;
                 default:
                     return false;
-
             }
-
         }
         return true;
     }

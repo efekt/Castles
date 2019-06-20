@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 public enum CastleMsg {
     MATCH_OVER("Match is over");
 
-
     private String message;
 
     CastleMsg(String message){

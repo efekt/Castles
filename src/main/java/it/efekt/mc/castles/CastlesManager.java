@@ -16,9 +16,7 @@ public class CastlesManager {
         if (this.instance != null){
             HandlerList.unregisterAll(plugin);
         }
-
         this.instance = new Castles(this.plugin);
-
     }
 
     public void start(){

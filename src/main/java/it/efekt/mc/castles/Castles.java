@@ -3,7 +3,7 @@ package it.efekt.mc.castles;
 import de.tr7zw.itemnbtapi.NBTItem;
 import it.efekt.mc.castles.listeners.CastlesListener;
 import it.efekt.mc.castles.runnables.CastlesTimer;
-import it.efekt.mc.castles.utils.Utils;
+import it.efekt.mc.castles.utils.CastlesUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,9 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,14 +45,14 @@ public class Castles implements Listener {
         next();
     }
 
-    public void giveFlagsToPlayers(){
+    private void giveFlagsToPlayers(){
         for (CastleTeam team : this.teams){
             Team scoreboardTeam = scoreboard.getPlayerTeam(Bukkit.getOfflinePlayer(team.getPlayers().get(0).getUniqueId()));
-            team.getPlayers().get(0).getInventory().addItem(createFlag(scoreboardTeam.getDisplayName(), scoreboardTeam.getColor()));
+            team.getPlayers().get(0).getInventory().addItem(CastlesUtils.createFlag(scoreboardTeam.getDisplayName(), scoreboardTeam.getColor()));
         }
     }
 
-    public void resetAllPlayers(){
+    private void resetAllPlayers(){
         for (Player player : Bukkit.getOnlinePlayers()){
             player.setSaturation(20f);
             player.setHealth(20);
@@ -64,12 +62,12 @@ public class Castles implements Listener {
         }
     }
 
-    public void randomizeTeams(int teamNumber){
+    private void randomizeTeams(int teamNumber){
         List<Player> players = new ArrayList<>();
         players.addAll(Bukkit.getOnlinePlayers());
 
         Collections.shuffle(players);
-        List<List<Player>> chunked = Utils.partition(players, players.size()/teamNumber);
+        List<List<Player>> chunked = CastlesUtils.partition(players, players.size()/teamNumber);
 
         if (chunked.size() > teamNumber){
             List<Player> leftover = chunked.get(teamNumber);
@@ -87,10 +85,9 @@ public class Castles implements Listener {
                 System.out.println(player.getName());
             }
         }
-
     }
 
-    public void populateScoreboardTeams(){
+    private void populateScoreboardTeams(){
         int i = 1;
         Objective objective = this.scoreboard.registerNewObjective("totalKillCount ", "totalKillCount ");
         objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
@@ -98,7 +95,7 @@ public class Castles implements Listener {
         for (CastleTeam castleTeam : this.teams){
             String teamName = TEAM_BASE_NAME + " " + i;
             Team team = scoreboard.registerNewTeam(teamName);
-            team.setColor(Utils.getChatColor(i-1));
+            team.setColor(CastlesUtils.getChatColor(i-1));
             team.setDisplayName(teamName);
             castleTeam.setScoreboardTeam(team);
             for (Player player : castleTeam.getPlayers()){
@@ -142,21 +139,17 @@ public class Castles implements Listener {
         }
     }
 
-    public List<CastleTeam> getTeams(){
-        return this.teams;
-    }
-
     public void announceWinners(CastleTeam winnerTeam){
         Bukkit.broadcastMessage("The winners: " + winnerTeam.getPlayersAsString());
     }
 
-    public void startCountdown(){
+    private void startCountdown(){
         this.mainTimer = new CastlesTimer(this);
         this.mainTimer.setNextState(this.gameState);
         this.mainTimer.runTaskTimer(this.plugin, 0L, 20L);
     }
 
-    public void stopCountdown(){
+    private void stopCountdown(){
         this.mainTimer.setActive(false);
     }
 
@@ -186,7 +179,7 @@ public class Castles implements Listener {
         return null;
     }
 
-    public void setAllFlagsOriginLocations(){
+    private void setAllFlagsOriginLocations(){
         for (CastleTeam team : getTeams()){
             team.setFlagBlockOriginLocation(team.getFlagBlockLocation());
         }
@@ -228,18 +221,18 @@ public class Castles implements Listener {
     }
 
     public CastleTeam getTeamFromFlag(ItemStack itemStack){
-        if (isFlag(itemStack)){
+        if (CastlesUtils.isFlag(itemStack)){
             return getTeam(ChatColor.valueOf(new NBTItem(itemStack).getString(FLAG_COLOR_NBT_STRING)));
         }
         return null;
     }
 
-    public void placeAllFlags(){
+    private void placeAllFlags(){
         for (CastleTeam team : this.teams){
             for (Player player : team.getPlayers()){
                 for (ItemStack item : player.getInventory().getContents()){
                     if (item != null && item.getType().equals(FLAG)){
-                        if (isFlag(item)){
+                        if (CastlesUtils.isFlag(item)){
                             Location loc = player.getLocation().getBlock().getLocation();
                             loc.getBlock().setType(item.getType());
                             player.getInventory().remove(item);
@@ -258,19 +251,9 @@ public class Castles implements Listener {
             return this.scoreboard;
     }
 
-    public ItemStack createFlag(String displayName, ChatColor color){
-        ItemStack flagItem = new ItemStack(FLAG, 1);
-        ItemMeta itemMeta = flagItem.getItemMeta();
-        itemMeta.setUnbreakable(true);
-        itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE);
-        itemMeta.setDisplayName(color + displayName);
-        flagItem.setItemMeta(itemMeta);
-        NBTItem nbti = new NBTItem(flagItem);
-        nbti.setString(FLAG_COLOR_NBT_STRING, color.name());
-        return nbti.getItem();
+    public List<CastleTeam> getTeams(){
+        return this.teams;
     }
 
-    public boolean isFlag(ItemStack itemStack){
-        return new NBTItem(itemStack).hasKey(FLAG_COLOR_NBT_STRING);
-    }
+
 }

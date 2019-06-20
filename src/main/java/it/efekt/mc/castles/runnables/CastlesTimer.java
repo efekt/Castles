@@ -1,6 +1,5 @@
 package it.efekt.mc.castles.runnables;
 
-import it.efekt.mc.castles.CastleTeam;
 import it.efekt.mc.castles.Castles;
 import it.efekt.mc.castles.GameState;
 import net.md_5.bungee.api.ChatMessageType;
@@ -48,10 +47,7 @@ public class CastlesTimer extends BukkitRunnable {
                 player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                 player.setFoodLevel(20);
             }
-
            // castles.getTeams().forEach(CastleTeam::updateCompass);
-
-
         }
         -- currentTime;
     }
