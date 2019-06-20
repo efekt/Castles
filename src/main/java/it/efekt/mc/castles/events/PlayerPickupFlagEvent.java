@@ -1,20 +1,23 @@
 package it.efekt.mc.castles.events;
 
 import it.efekt.mc.castles.CastleTeam;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class FlagBreakEvent extends Event {
-    private static final HandlerList handlers = new HandlerList();
+public class PlayerPickupFlagEvent extends Event {
+    private static final HandlerList HANDLERS = new HandlerList();
     private Player player;
-    private CastleTeam playerTeam;
     private CastleTeam flagTeam;
+    private CastleTeam playerTeam;
+    private Item droppedItem;
 
-    public FlagBreakEvent(Player player, CastleTeam flagTeam, CastleTeam playerTeam){
+    public PlayerPickupFlagEvent(Player player, CastleTeam flagTeam, CastleTeam playerTeam, Item droppedItem) {
         this.player = player;
         this.flagTeam = flagTeam;
         this.playerTeam = playerTeam;
+        this.droppedItem = droppedItem;
     }
 
     public Player getPlayer() {
@@ -29,12 +32,15 @@ public class FlagBreakEvent extends Event {
         return playerTeam;
     }
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
+    public Item getDroppedItem() {
+        return droppedItem;
     }
 
-    public static HandlerList getHandlerList(){
-        return handlers;
+    public HandlerList getHandlers() {
+        return HANDLERS;
+    }
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
     }
 }
