@@ -2,6 +2,7 @@ package it.efekt.mc.castles;
 
 import de.tr7zw.itemnbtapi.NBTItem;
 import it.efekt.mc.castles.listeners.CastlesListener;
+import it.efekt.mc.castles.listeners.CastlesMcListener;
 import it.efekt.mc.castles.runnables.CastlesTimer;
 import it.efekt.mc.castles.utils.CastlesUtils;
 import org.bukkit.Bukkit;
@@ -26,12 +27,12 @@ public class Castles implements Listener {
     private Config config;
     private Scoreboard scoreboard;
     public static Material FLAG = Material.SPONGE;
-    private final String TEAM_BASE_NAME = "Team";
     public static String FLAG_COLOR_NBT_STRING = "castlesFlagColor";
 
     public Castles(CastlesPlugin plugin){
         this.plugin = plugin;
-        new CastlesListener(plugin, this);
+        new CastlesMcListener(plugin, this);
+        new CastlesListener(plugin);
         this.config = new Config(this.plugin);
         setGameState(GameState.LOBBY);
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
@@ -93,7 +94,7 @@ public class Castles implements Listener {
         objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
         for (CastleTeam castleTeam : this.teams){
-            String teamName = TEAM_BASE_NAME + " " + i;
+            String teamName = getConfig().getTeamBaseName() + " " + i;
             Team team = scoreboard.registerNewTeam(teamName);
             team.setColor(CastlesUtils.getChatColor(i-1));
             team.setDisplayName(teamName);

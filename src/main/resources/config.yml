@@ -1,10 +1,19 @@
+# Main spawn Location
 spawn:
   world: world
   x: -49
   y: 68
   z: 142
   yaw: 90
+# Length (minutes) of the peace mode
 peaceLength: 60
+# Length (minutes) of the war mode
 warLength: 60
+# Team count
 teamCount: 2
+# Radius (blocks) within only defending team can damage other's team players
 flagPvpZoneRadius: 50
+# Time (seconds) after the flag will be placed on the ground or placed on it's original position if previously set
+flagPlaceReturnTime: 5
+# Base name of the team, it will be displayed throughout the match (ex. "Player x dropped flag of <teamBaseName> #nr")
+teamBaseName: Team

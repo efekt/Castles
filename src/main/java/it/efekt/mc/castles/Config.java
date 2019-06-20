@@ -39,6 +39,14 @@ public class Config {
         return this.conf.getInt("flagPvpZoneRadius");
     }
 
+    public int getFlagPlaceReturnTime(){
+        return this.conf.getInt("flagPlaceReturnTime");
+    }
+
+    public String getTeamBaseName(){
+        return this.conf.getString("teamBaseName");
+    }
+
     public void reload(){
         this.plugin.reloadConfig();
     }

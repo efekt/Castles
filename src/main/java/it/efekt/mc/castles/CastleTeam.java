@@ -1,6 +1,7 @@
 package it.efekt.mc.castles;
 
 import de.tr7zw.itemnbtapi.NBTItem;
+import it.efekt.mc.castles.events.FlagReturnedToOriginEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -102,6 +103,7 @@ public class CastleTeam {
     public void moveFlagToOrigin(){
         getFlagBlockOriginLocation().getBlock().setType(Castles.FLAG);
         updateFlagBlockLocation(getFlagBlockOriginLocation());
+        Bukkit.getServer().getPluginManager().callEvent(new FlagReturnedToOriginEvent(this));
     }
 
     public String getName() {
