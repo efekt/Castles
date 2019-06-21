@@ -25,6 +25,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
@@ -365,7 +366,22 @@ public class CastlesMcListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onFlagDespawn(ItemDespawnEvent e){
+        if (CastlesUtils.isFlag(e.getEntity().getItemStack())){
+            placeFlagOnGroundOrReturn(e.getEntity(), 0);
+        }
+    }
 
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent e){
+        for (Entity entity : e.getChunk().getEntities()){
+            if (entity instanceof Item){
+                Item item = (Item) entity;
+                placeFlagOnGroundOrReturn(item, 0);
+            }
+        }
+    }
 
     private void dropFlagFromInventoryOnGround(Player player) {
          Location loc = player.getLocation().clone().add(0, 1, 0);
