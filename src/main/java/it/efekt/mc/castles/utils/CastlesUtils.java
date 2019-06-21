@@ -3,6 +3,8 @@ package it.efekt.mc.castles.utils;
 import de.tr7zw.itemnbtapi.NBTItem;
 import it.efekt.mc.castles.Castles;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -67,5 +69,23 @@ public class CastlesUtils {
         } else {
             return false;
         }
+    }
+
+    public static ItemStack removeFlagFromInventory(Player player){
+        ItemStack flagItemStack = null;
+        for (ItemStack item : player.getInventory().getContents()){
+            if (item != null && item.getType().equals(Castles.FLAG)){
+                if (CastlesUtils.isFlag(item)){
+                    flagItemStack = item.clone();
+                    player.getInventory().remove(item);
+                }
+            }
+        }
+        if (CastlesUtils.isFlag(player.getInventory().getItemInOffHand())){
+            flagItemStack = player.getInventory().getItemInOffHand().clone();
+            player.getInventory().getItemInOffHand().setType(Material.AIR);
+        }
+        player.updateInventory();
+        return flagItemStack;
     }
 }

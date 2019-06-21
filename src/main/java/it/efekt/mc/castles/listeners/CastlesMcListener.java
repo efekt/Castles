@@ -79,15 +79,14 @@ public class CastlesMcListener implements Listener {
                 Player attacker = (Player) e.getDamager();
                 Player defender = (Player) e.getEntity();
 
-                if (getCastles().getTeam(attacker).isFlagPlaced()){
-                    if (isInPvpRange(defender)){
-                        attacker.sendMessage(defender.getDisplayName() + " is protected in this area");
-                        e.setCancelled(true);
-                    } else {
-                        e.setCancelled(false);
-                    }
-                } else {
+                if (isInPvpRange(defender)){
+                    attacker.sendMessage(defender.getDisplayName() + " is protected in this area");
                     e.setCancelled(true);
+                    return;
+                }
+
+                if (!(isInPvpRange(defender) && isInPvpRange(attacker))){
+                    e.setCancelled(false);
                 }
             }
         }
@@ -106,37 +105,6 @@ public class CastlesMcListener implements Listener {
             placeFlagOnGroundOrReturn(e.getItemDrop(), getCastles().getConfig().getFlagPlaceReturnTime());
             callEvent(new PlayerDropFlagEvent(e.getPlayer(), getCastles().getTeamFromFlag(e.getItemDrop().getItemStack()), getCastles().getTeam(e.getPlayer()), e.getItemDrop()));
         }
-    }
-
-    // for dropped item: returns to it's original location if exists, if not places on the ground
-    private void placeFlagOnGroundOrReturn(Item flagItem, int secDelay){
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, ()->{
-            CastleTeam flagTeam = getCastles().getTeamFromFlag(flagItem.getItemStack());
-
-            // check if there is any entity that looks like our flag on the ground
-            List<Entity> nearbyEntities = new ArrayList<>();
-            nearbyEntities.addAll(flagItem.getLocation().getWorld().getNearbyEntities(flagItem.getBoundingBox()));
-
-            if (!nearbyEntities.contains(flagItem)){
-                return;
-            }
-
-            if (flagTeam.getFlagBlockOriginLocation() == null){
-                // place block in location of itemstack in the world
-                placeFlagOnGround(flagTeam, flagItem);
-                flagItem.remove();
-            } else{
-                // place flag back onto an original location if set
-                flagTeam.moveFlagToOrigin();
-                flagItem.remove();
-            }
-        }, secDelay*20);
-    }
-
-    private void placeFlagOnGround(CastleTeam flagTeam, Item flagItem){
-        Location currentItemLoc = flagItem.getLocation().getBlock().getLocation();
-        currentItemLoc.getBlock().setType(Castles.FLAG);
-        flagTeam.updateFlagBlockLocation(currentItemLoc);
     }
 
     @EventHandler
@@ -170,7 +138,7 @@ public class CastlesMcListener implements Listener {
                         for (ItemStack itemStack : player.getInventory().getContents()){
                             if (itemStack != null && itemStack.equals(pickedUpFlag)){
                                 playerTeam.moveFlagToOrigin();
-                                removeFlagFromInventory(player);
+                                CastlesUtils.removeFlagFromInventory(player);
                                 return;
                             }
                         }
@@ -397,27 +365,11 @@ public class CastlesMcListener implements Listener {
         }
     }
 
-    private ItemStack removeFlagFromInventory(Player player){
-        ItemStack flagItemStack = null;
-        for (ItemStack item : player.getInventory().getContents()){
-            if (item != null && item.getType().equals(Castles.FLAG)){
-                if (CastlesUtils.isFlag(item)){
-                    flagItemStack = item.clone();
-                    player.getInventory().remove(item);
-                }
-            }
-        }
-        if (CastlesUtils.isFlag(player.getInventory().getItemInOffHand())){
-            flagItemStack = player.getInventory().getItemInOffHand().clone();
-            player.getInventory().getItemInOffHand().setType(Material.AIR);
-        }
-        player.updateInventory();
-        return flagItemStack;
-    }
+
 
     private void dropFlagFromInventoryOnGround(Player player) {
          Location loc = player.getLocation().clone().add(0, 1, 0);
-         ItemStack flag = removeFlagFromInventory(player);
+         ItemStack flag = CastlesUtils.removeFlagFromInventory(player);
          Item item = player.getWorld().dropItem(loc, flag);
          callEvent(new PlayerDropFlagEvent(player, getCastles().getTeamFromFlag(flag), getCastles().getTeam(player), item));
          item.setInvulnerable(true);
@@ -431,6 +383,37 @@ public class CastlesMcListener implements Listener {
         } else {
             return (defender.getLocation().distance(getCastles().getTeam(defender).getFlagBlockLocation()) <= castles.getConfig().getFlagNoPvpZoneRadius());
         }
+    }
+
+    // for dropped item: returns to it's original location if exists, if not places on the ground
+    private void placeFlagOnGroundOrReturn(Item flagItem, int secDelay){
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, ()->{
+            CastleTeam flagTeam = getCastles().getTeamFromFlag(flagItem.getItemStack());
+
+            // check if there is any entity that looks like our flag on the ground
+            List<Entity> nearbyEntities = new ArrayList<>();
+            nearbyEntities.addAll(flagItem.getLocation().getWorld().getNearbyEntities(flagItem.getBoundingBox()));
+
+            if (!nearbyEntities.contains(flagItem)){
+                return;
+            }
+
+            if (flagTeam.getFlagBlockOriginLocation() == null){
+                // place block in location of itemstack in the world
+                placeFlagOnGround(flagTeam, flagItem);
+                flagItem.remove();
+            } else{
+                // place flag back onto an original location if set
+                flagTeam.moveFlagToOrigin();
+                flagItem.remove();
+            }
+        }, secDelay*20);
+    }
+
+    private void placeFlagOnGround(CastleTeam flagTeam, Item flagItem){
+        Location currentItemLoc = flagItem.getLocation().getBlock().getLocation();
+        currentItemLoc.getBlock().setType(Castles.FLAG);
+        flagTeam.updateFlagBlockLocation(currentItemLoc);
     }
 
     private void callEvent(Event event){

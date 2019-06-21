@@ -236,8 +236,7 @@ public class Castles implements Listener {
                         if (CastlesUtils.isFlag(item)){
                             Location loc = player.getLocation().getBlock().getLocation();
                             loc.getBlock().setType(item.getType());
-                            player.getInventory().remove(item);
-                            player.updateInventory();
+                            CastlesUtils.removeFlagFromInventory(player);
                             CastleTeam castleTeam = getTeamFromFlag(item);
                             castleTeam.updateFlagBlockLocation(loc);
                             Bukkit.getLogger().log(Level.INFO, "Player " + player.getName() + " didn't place flag in Peace time, placed automatically at loc:" + loc.toString());
