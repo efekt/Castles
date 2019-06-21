@@ -128,12 +128,12 @@ public class Castles implements Listener {
                 break;
             case WAR:
                 stopCountdown();
-                Bukkit.broadcastMessage("ROUND IS OVER!");
+                Bukkit.broadcastMessage(ChatColor.GREEN + "GRA ZOSTAŁA ZAKOŃCZONA!");
                 setGameState(GameState.FINISHED);
                 break;
             case FINISHED:
                 stopCountdown();
-                Bukkit.broadcastMessage("This is the end!");
+                Bukkit.broadcastMessage(ChatColor.GREEN + "To już jest koniec!");
                 break;
             default:
                 break;
@@ -141,7 +141,7 @@ public class Castles implements Listener {
     }
 
     public void announceWinners(CastleTeam winnerTeam){
-        Bukkit.broadcastMessage("The winners: " + winnerTeam.getPlayersAsString());
+        Bukkit.broadcastMessage(ChatColor.AQUA + "Wygrała drużyna: " + winnerTeam.getColor() + winnerTeam.getName() + ChatColor.DARK_AQUA + "\nGracze: " + winnerTeam.getColor() + winnerTeam.getPlayersAsString());
     }
 
     private void startCountdown(){

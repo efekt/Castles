@@ -22,13 +22,14 @@ public class CastleCommand implements CommandExecutor {
                     CastlesPlugin.castlesManager.start();
                     Castles castles = CastlesPlugin.castlesManager.getInstance();
                     Config config = castles.getConfig();
-                    Bukkit.broadcastMessage(ChatColor.AQUA + "Castles started!");
-                    Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Peace time: " + ChatColor.GOLD + config.getPeaceTime());
-                    Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "War time: " + ChatColor.GOLD + config.getWarTime());
-                    Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Teams: " + ChatColor.GOLD + config.getTeamCount());
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Zamki rozpoczęte!");
+                    Bukkit.broadcastMessage(" ");
+                    Bukkit.broadcastMessage(ChatColor.AQUA + "Czas pokoju: " + ChatColor.GOLD + config.getPeaceTime());
+                    Bukkit.broadcastMessage(ChatColor.AQUA + "Czas wojny: " + ChatColor.GOLD + config.getWarTime());
+                    Bukkit.broadcastMessage(ChatColor.AQUA + "Drużyny: " + ChatColor.GOLD + config.getTeamCount());
                     int i = 1;
                     for (CastleTeam team : castles.getTeams()){
-                        Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Team " + i + ": " + ChatColor.WHITE + team.getPlayersAsString());
+                        Bukkit.broadcastMessage(team.getColor() + "" + ChatColor.BOLD + castles.getConfig().getTeamBaseName() + " " + i + ": " + team.getColor() + team.getPlayersAsString());
                         i++;
                     }
                     return true;

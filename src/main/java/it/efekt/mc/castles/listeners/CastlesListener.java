@@ -23,7 +23,7 @@ public class CastlesListener implements Listener {
         Player player = e.getPlayer();
         CastleTeam playerTeam = e.getPlayerTeam();
         CastleTeam flagTeam = e.getFlagTeam();
-        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " broke " + flagTeam.getColor() + flagTeam.getName());
+        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " zniszczył " + flagTeam.getColor() + "gąbkę");
     }
 
     @EventHandler
@@ -31,7 +31,7 @@ public class CastlesListener implements Listener {
         Player player = e.getPlayer();
         CastleTeam flagTeam = e.getFlagTeam();
         CastleTeam playerTeam = e.getPlayerTeam();
-        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " dropped " + flagTeam.getColor() + flagTeam.getName());
+        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " upuścił " + flagTeam.getColor() + "gąbkę");
     }
 
     @EventHandler
@@ -39,7 +39,7 @@ public class CastlesListener implements Listener {
         Player player = e.getPlayer();
         CastleTeam flagTeam = e.getFlagTeam();
         CastleTeam playerTeam = e.getPlayerTeam();
-        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " picked up " + flagTeam.getColor() + flagTeam.getName());
+        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " podniósł " + flagTeam.getColor() + "gąbkę");
     }
 
     @EventHandler
@@ -47,6 +47,6 @@ public class CastlesListener implements Listener {
         Player player = e.getPlayer();
         CastleTeam flagTeam = e.getFlagTeam();
         CastleTeam playerTeam = e.getPlayerTeam();
-        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " placed " + flagTeam.getColor() + flagTeam.getName());
+        Bukkit.broadcastMessage(playerTeam.getColor() + player.getDisplayName() + ChatColor.WHITE + " postawił " + flagTeam.getColor() + "gąbkę");
     }
 }

@@ -10,6 +10,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.concurrent.TimeUnit;
+
 public class CastlesTimer extends BukkitRunnable {
     private boolean isActive = true;
     private long currentTime;
@@ -40,8 +42,19 @@ public class CastlesTimer extends BukkitRunnable {
             this.isActive = false;
             this.progress();
         }
+
+        long minutesLeft = TimeUnit.SECONDS.toMinutes(currentTime);
+        long secondsLeft = currentTime - (minutesLeft * 60);
+
+        ChatColor timeColor = ChatColor.GOLD;
+
+        if (minutesLeft < 5){
+            timeColor = ChatColor.RED;
+        }
+
+
         for (Player player : Bukkit.getOnlinePlayers()){
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.DARK_AQUA + castles.getGameState().toString() + ": " + ChatColor.GOLD + currentTime));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + castles.getGameState().getTranslated() + ": " + timeColor + minutesLeft + "m " + secondsLeft + "s"));
 
             if (this.castles.getGameState().equals(GameState.LOBBY) || this.castles.getGameState().equals(GameState.PREPARATION)){
                 player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());

@@ -1,16 +1,22 @@
 package it.efekt.mc.castles;
 
 public enum GameState {
-    LOBBY(2700),
-    PREPARATION(2700),
-    PEACE(2700),
-    WAR(2700),
-    FINISHED(0);
+    LOBBY(2700, "LOBBY"),
+    PREPARATION(2700, "PRZYGOTOWANIA"),
+    PEACE(2700, "Czas Pokoju"),
+    WAR(2700, "Czas Wojny"),
+    FINISHED(0, "KONIEC");
 
     private long time;
+    private String translated;
 
-    GameState(long time){
+    GameState(long time, String translated){
         this.time = time;
+        this.translated = translated;
+    }
+
+    public String getTranslated() {
+        return translated;
     }
 
     public long getLength(){
