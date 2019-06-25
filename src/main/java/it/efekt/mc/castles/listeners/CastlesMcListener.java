@@ -10,7 +10,6 @@ import it.efekt.mc.castles.utils.CastlesUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -28,8 +27,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 public class CastlesMcListener implements Listener {
@@ -81,13 +78,12 @@ public class CastlesMcListener implements Listener {
                 Player defender = (Player) e.getEntity();
 
                 if (isInPvpRange(defender)){
-                    attacker.sendMessage(defender.getDisplayName() + " is protected in this area");
+                    attacker.sendMessage(defender.getDisplayName() + " jest chroniony na tym obszarze");
                     e.setCancelled(true);
-                    return;
                 }
 
-                if (!(isInPvpRange(defender) && isInPvpRange(attacker))){
-                    e.setCancelled(false);
+                if (!isInPvpRange(attacker) && !isInPvpRange(defender)){
+                    e.setCancelled(true);
                 }
             }
         }
@@ -103,7 +99,7 @@ public class CastlesMcListener implements Listener {
         NBTItem nbtItem = new NBTItem(e.getItemDrop().getItemStack());
         if (nbtItem.hasKey("castlesFlagColor")){
             e.getItemDrop().setInvulnerable(true);
-            placeFlagOnGroundOrReturn(e.getItemDrop(), getCastles().getConfig().getFlagPlaceReturnTime());
+            CastlesUtils.placeFlagOnGroundOrReturnDelayed(e.getItemDrop(), getCastles().getConfig().getFlagPlaceReturnTime());
             callEvent(new PlayerDropFlagEvent(e.getPlayer(), getCastles().getTeamFromFlag(e.getItemDrop().getItemStack()), getCastles().getTeam(e.getPlayer()), e.getItemDrop()));
         }
     }
@@ -253,7 +249,7 @@ public class CastlesMcListener implements Listener {
         // drop it manually with pre-created item with nbt-tags
         Item droppedItem = e.getBlock().getLocation().getWorld().dropItem(e.getBlock().getLocation(), CastlesUtils.createFlag(flagTeam.getName(), flagTeam.getColor()));
         droppedItem.setInvulnerable(true);
-        placeFlagOnGroundOrReturn(droppedItem, getCastles().getConfig().getFlagPlaceReturnTime());
+        CastlesUtils.placeFlagOnGroundOrReturnDelayed(droppedItem, getCastles().getConfig().getFlagPlaceReturnTime());
 
         // set flagBlockLocation as null
         flagTeam.updateFlagBlockLocation(null);
@@ -312,6 +308,11 @@ public class CastlesMcListener implements Listener {
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e){
+        Player player = e.getPlayer();
+        if (player.getBedSpawnLocation() != null){
+            e.setRespawnLocation(player.getBedSpawnLocation());
+            return;
+        }
         e.setRespawnLocation(getCastles().getConfig().getSpawnLocation());
     }
 
@@ -369,7 +370,7 @@ public class CastlesMcListener implements Listener {
     @EventHandler
     public void onFlagDespawn(ItemDespawnEvent e){
         if (CastlesUtils.isFlag(e.getEntity().getItemStack())){
-            placeFlagOnGroundOrReturn(e.getEntity(), 0);
+            CastlesUtils.placeFlagOnGroundOrReturn(e.getEntity());
         }
     }
 
@@ -378,7 +379,7 @@ public class CastlesMcListener implements Listener {
         for (Entity entity : e.getChunk().getEntities()){
             if (entity instanceof Item){
                 Item item = (Item) entity;
-                placeFlagOnGroundOrReturn(item, 0);
+                CastlesUtils.placeFlagOnGroundOrReturn(item);
             }
         }
     }
@@ -386,10 +387,13 @@ public class CastlesMcListener implements Listener {
     private void dropFlagFromInventoryOnGround(Player player) {
          Location loc = player.getLocation().clone().add(0, 1, 0);
          ItemStack flag = CastlesUtils.removeFlagFromInventory(player);
+         if (flag == null){
+             return;
+         }
          Item item = player.getWorld().dropItem(loc, flag);
          callEvent(new PlayerDropFlagEvent(player, getCastles().getTeamFromFlag(flag), getCastles().getTeam(player), item));
          item.setInvulnerable(true);
-         placeFlagOnGroundOrReturn(item, getCastles().getConfig().getFlagPlaceReturnTime());
+         CastlesUtils.placeFlagOnGroundOrReturnDelayed(item, getCastles().getConfig().getFlagPlaceReturnTime());
          Bukkit.getLogger().log(Level.INFO, "Sponge has been dropped on the ground at loc:" + loc.toString());
     }
 
@@ -401,36 +405,7 @@ public class CastlesMcListener implements Listener {
         }
     }
 
-    // for dropped item: returns to it's original location if exists, if not places on the ground
-    private void placeFlagOnGroundOrReturn(Item flagItem, int secDelay){
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, ()->{
-            CastleTeam flagTeam = getCastles().getTeamFromFlag(flagItem.getItemStack());
 
-            // check if there is any entity that looks like our flag on the ground
-            List<Entity> nearbyEntities = new ArrayList<>();
-            nearbyEntities.addAll(flagItem.getLocation().getWorld().getNearbyEntities(flagItem.getBoundingBox()));
-
-            if (!nearbyEntities.contains(flagItem)){
-                return;
-            }
-
-            if (flagTeam.getFlagBlockOriginLocation() == null){
-                // place block in location of itemstack in the world
-                placeFlagOnGround(flagTeam, flagItem);
-                flagItem.remove();
-            } else{
-                // place flag back onto an original location if set
-                flagTeam.moveFlagToOrigin();
-                flagItem.remove();
-            }
-        }, secDelay*20);
-    }
-
-    private void placeFlagOnGround(CastleTeam flagTeam, Item flagItem){
-        Location currentItemLoc = flagItem.getLocation().getBlock().getLocation();
-        currentItemLoc.getBlock().setType(Castles.FLAG);
-        flagTeam.updateFlagBlockLocation(currentItemLoc);
-    }
 
     private void callEvent(Event event){
         Bukkit.getServer().getPluginManager().callEvent(event);

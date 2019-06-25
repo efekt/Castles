@@ -1,9 +1,15 @@
 package it.efekt.mc.castles.utils;
 
 import de.tr7zw.itemnbtapi.NBTItem;
+import it.efekt.mc.castles.CastleTeam;
 import it.efekt.mc.castles.Castles;
+import it.efekt.mc.castles.CastlesPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -87,5 +93,40 @@ public class CastlesUtils {
         }
         player.updateInventory();
         return flagItemStack;
+    }
+
+    // for dropped item: returns to it's original location if exists, if not places on the ground
+    public static void placeFlagOnGroundOrReturnDelayed(Item flagItem, int secDelay){
+        Bukkit.getScheduler().scheduleSyncDelayedTask(CastlesPlugin.plugin, ()->{
+            placeFlagOnGroundOrReturn(flagItem);
+        }, secDelay*20);
+    }
+
+    public static void placeFlagOnGroundOrReturn(Item flagItem){
+        CastleTeam flagTeam = CastlesPlugin.castlesManager.getInstance().getTeamFromFlag(flagItem.getItemStack());
+
+        // check if there is any entity that looks like our flag on the ground
+        List<Entity> nearbyEntities = new ArrayList<>();
+        nearbyEntities.addAll(flagItem.getLocation().getWorld().getNearbyEntities(flagItem.getBoundingBox()));
+
+        if (!nearbyEntities.contains(flagItem)){
+            return;
+        }
+
+        if (flagTeam.getFlagBlockOriginLocation() == null){
+            // place block in location of itemstack in the world
+            placeFlagOnGround(flagTeam, flagItem);
+            flagItem.remove();
+        } else{
+            // place flag back onto an original location if set
+            flagTeam.moveFlagToOrigin();
+            flagItem.remove();
+        }
+    }
+
+    public static void placeFlagOnGround(CastleTeam flagTeam, Item flagItem){
+        Location currentItemLoc = flagItem.getLocation().getBlock().getLocation();
+        currentItemLoc.getBlock().setType(Castles.FLAG);
+        flagTeam.updateFlagBlockLocation(currentItemLoc);
     }
 }

@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -231,6 +233,9 @@ public class Castles implements Listener {
     private void placeAllFlags(){
         for (CastleTeam team : this.teams){
             for (Player player : team.getPlayers()){
+                if (!player.isOnline()){
+                    continue;
+                }
                 for (ItemStack item : player.getInventory().getContents()){
                     if (item != null && item.getType().equals(FLAG)){
                         if (CastlesUtils.isFlag(item)){
@@ -241,6 +246,18 @@ public class Castles implements Listener {
                             castleTeam.updateFlagBlockLocation(loc);
                             Bukkit.getLogger().log(Level.INFO, "Player " + player.getName() + " didn't place flag in Peace time, placed automatically at loc:" + loc.toString());
                         }
+                    }
+                }
+            }
+        }
+
+        double range = 100;
+        for (Player player : Bukkit.getOnlinePlayers()){
+            for (Entity entity : player.getNearbyEntities(range, range, range)){
+                if (entity instanceof Item){
+                    Item item = (Item) entity;
+                    if (CastlesUtils.isFlag(item.getItemStack())){
+                        CastlesUtils.placeFlagOnGroundOrReturn(item);
                     }
                 }
             }
